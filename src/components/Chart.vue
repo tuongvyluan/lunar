@@ -1,6 +1,78 @@
 <script>
-    export default {
-        data: {
+import { Bar, Line } from 'vue-chartjs/legacy'
+import * as moment from 'moment'
+
+export default {
+    props: {
+        range: {
+            type: Array
+        }
+    },
+    components: {
+        Bar, Line
+    },
+    watch: {
+        range: {
+            immediate: true,
+            deep: true,
+            handler() {
+                let start = this.$props.range[0];
+                let end = this.$props.range[1];
+                let sampleSet = this.$data.sample;
+                let availableStart = sampleSet[0].time;
+                let availableEnd = sampleSet[sampleSet.length - 1].time;
+                if (end < availableStart || start > availableEnd) {
+                    this.$data.labels = null;
+                    this.$data.dataset1 = null;
+                    this.$data.dataset2 = null;
+                    this.$data.chartData1 = null;
+                    this.$data.chartData2 = null;
+                } else {
+                    if (start <= availableStart) {
+                        start = availableStart;
+                    }
+                    if (end >= availableEnd) {
+                        end = availableEnd;
+                    }
+                    let labelSet = [];
+                    let newSet1 = [];
+                    let newSet2 = [];
+                    sampleSet.every(function (ele, index) {
+                        if (ele.time > end) {
+                            return false;
+                        }
+                        if (ele.time >= start && ele.time <= end) {
+                            labelSet.push(ele.label);
+                            newSet1.push(ele.dataset1);
+                            newSet2.push(ele.dataset2);
+                        }
+                        return true;
+                    })
+                    this.$data.labels = labelSet;
+                    this.$data.dataset1 = newSet1;
+                    this.$data.dataset2 = newSet2;
+                    this.$data.chartData1 = {
+                        labels: labelSet,
+                        datasets: newSet1
+                    }
+                    this.$data.chartData2 = {
+                        labels: labelSet,
+                        datasets: newSet2
+                    }
+                }
+            }
+        }
+    },
+    data() {
+        return {
+            labels: null,
+            dataset1: null,
+            dataset2: null,
+            chartOptions: {
+                responsive: true,
+            },
+            chartData1: null,
+            chartData2: null,
             sample:
                 [
                     {
@@ -192,4 +264,31 @@
                 ]
         }
     }
+}
 </script>
+
+<template>
+    <div>
+        <div v-if="this.$props.range[0] != null && this.$props.range[1] != null">
+            The time range is: {{ this.$props.range[0] }} to {{this.$props.range[1]}}
+        </div>
+
+        <div>
+            <div v-if="labels != null && labels.length > 0">
+                <!-- <Bar :chart-options="chartOptions" :chart-data="chartData1" /> -->
+
+                <!-- <Bar :chart-options="chartOptions" :chart-data="chartData1" :chart-id="'chartId'"
+                    :dataset-id-key="'label'" /> -->
+                <div v-for="(label, index) in labels" :key="index">
+                    <p>{{label}}: {{dataset1[index]}} | {{dataset2[index]}}</p>
+                </div>
+                <!-- <line :chart-options="chartOptions" :chart-data="chartData2">
+
+                </line> -->
+            </div>
+            <div v-else>
+                There is no data in this range
+            </div>
+        </div>
+    </div>
+</template>

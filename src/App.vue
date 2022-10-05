@@ -2,11 +2,12 @@
 
 </script>
 <script>
-import DatePicker from './components/DatePicker.vue';
+import MyDatePicker from './components/MyDatePicker.vue';
+import Chart from './components/Chart.vue';
 
 export default {
   components: {
-    DatePicker
+    MyDatePicker, BarChart: Chart
   },
 
   data() {
@@ -20,13 +21,15 @@ export default {
 
 <template>
   <div id="app">
-    <DatePicker @get-range="(range) => this.range = range"></DatePicker>
+    <MyDatePicker @get-range="(range) => this.range = range"></MyDatePicker>
 
     <div v-if="range != null">
-      The date range is: {{range}}
+      <Chart :range="range">
+
+      </Chart>
     </div>
 
-    
+
   </div>
 </template>
 
